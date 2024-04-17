@@ -4,6 +4,7 @@ use tracing_subscriber::EnvFilter;
 use crate::network::Server;
 
 mod network;
+mod decode;
 
 #[actix_rt::main]
 async fn main() {

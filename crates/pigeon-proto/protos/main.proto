@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package main;
+
+import "test.proto";
+
+message MessageWrapper {
+  oneof message {
+    test.Test test = 1;
+  }
+}

@@ -1150,7 +1150,10 @@ dependencies = [
  "actix-rt",
  "bytes",
  "dotenv",
+ "pigeon-logic",
  "pigeon-proto",
+ "prost",
+ "tokio",
  "tracing",
  "tracing-subscriber",
 ]
