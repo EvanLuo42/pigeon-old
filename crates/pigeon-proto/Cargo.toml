@@ -1,0 +1,11 @@
+[package]
+name = "pigeon-proto"
+version.workspace = true
+description.workspace = true
+authors.workspace = true
+edition.workspace = true
+
+[dependencies]
+bytes = { workspace = true }
+prost = { workspace = true }
+prost-build = { workspace = true }

@@ -1,0 +1,9 @@
+[package]
+name = "pigeon-gateway"
+version.workspace = true
+description.workspace = true
+authors.workspace = true
+edition.workspace = true
+
+[dependencies]
+pingora = "0.1.0"
