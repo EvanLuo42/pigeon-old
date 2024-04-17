@@ -14,4 +14,5 @@ actix = "0.13.3"
 actix-rt = "2.2"
 bytes = "1.6.0"
 prost = "0.12.4"
-prost-build = "0.12.4"
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }

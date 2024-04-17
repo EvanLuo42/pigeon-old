@@ -4,6 +4,11 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+pigeon-proto = { path = "../pigeon-proto" }
+
+dotenv = "0.15.0"
 actix = { workspace = true }
 actix-rt = { workspace = true }
 bytes = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
