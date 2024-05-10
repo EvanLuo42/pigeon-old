@@ -1,6 +1,6 @@
 [workspace]
-members = [ "crates/pigeon-gateway", "crates/pigeon-logic", "crates/pigeon-proto","crates/pigeon-runner"]
-default-members = ["crates/pigeon-runner"]
+members = ["crates/pigeon-pingora", "crates/pigeon-server"]
+default-members = ["crates/pigeon-server"]
 resolver = "2"
 
 [workspace.package]
@@ -8,11 +8,3 @@ version = "0.1.0"
 description = "A game server framework supporting hot-reload."
 authors = ["EvanLuo42"]
 edition = "2021"
-
-[workspace.dependencies]
-actix = "0.13.3"
-actix-rt = "2.2"
-bytes = "1.6.0"
-prost = "0.12.4"
-tracing = "0.1.40"
-tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }

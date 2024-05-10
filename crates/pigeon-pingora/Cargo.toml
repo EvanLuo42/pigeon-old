@@ -1,13 +1,8 @@
 [package]
-name = "pigeon-proto"
+name = "pigeon-pingora"
 version.workspace = true
 description.workspace = true
 authors.workspace = true
 edition.workspace = true
 
 [dependencies]
-bytes = { workspace = true }
-prost = { workspace = true }
-
-[build-dependencies]
-prost-build = "0.12.4"
