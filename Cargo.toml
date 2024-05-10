@@ -1,6 +1,5 @@
 [workspace]
-members = ["crates/pigeon-pingora", "crates/pigeon-server"]
-default-members = ["crates/pigeon-server"]
+members = ["crates/pigeon-gateway", "crates/pigeon-auth","crates/pigeon-pingora"]
 resolver = "2"
 
 [workspace.package]

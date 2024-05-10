@@ -8,6 +8,10 @@
       <sourceFolder url="file://$MODULE_DIR$/crates/pigeon-proto/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/pigeon-runner/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/pigeon-actor/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/pigeon-pingora/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/pigeon-server/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/pigeon-auth/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />
