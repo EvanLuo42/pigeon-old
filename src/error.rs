@@ -20,5 +20,8 @@ pub enum ServerError {
     HandlerNotExist(u8),
     
     #[error("Empty request from {0}")]
-    EmptyRequest(String)
+    EmptyRequest(String),
+
+    #[error("Manager {0} not exist")]
+    ManagerNotExist(String),
 }
