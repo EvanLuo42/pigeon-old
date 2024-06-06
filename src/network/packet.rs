@@ -11,7 +11,7 @@ pub trait Packet<'a> {
     fn encode(&self) -> Result<Vec<u8>, ServerError>
         where Self: Serialize + Sized
     {
-        rmp_serde::encode::to_vec(self).map_err(|e| e.into())
+        rmp_serde::encode::to_vec_named(self).map_err(|e| e.into())
     }
 }
 

@@ -56,7 +56,6 @@ impl Session {
                     return
                 }
                 let encoded_response = encoded_response.unwrap();
-                println!("{}", encoded_response.len());
                 socket.write_all(&encoded_response).await.unwrap_or_else(|e| error!("{}", e));
                 socket.write_all(&encoded_error).await.unwrap_or_else(|e| error!("{}", e));
             }
