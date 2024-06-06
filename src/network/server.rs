@@ -1,5 +1,5 @@
-use tokio::net::{TcpListener, ToSocketAddrs};
-use tracing::info;
+use tokio::net::{TcpListener};
+use tracing::{error, info};
 
 use crate::error::ServerError;
 use crate::network::session::Session;
@@ -9,7 +9,7 @@ pub struct TcpServer {
 }
 
 impl TcpServer {
-    pub async fn new(addr: &str) -> Result<TcpServer, ServerError> {
+    pub async fn new(addr: String) -> Result<TcpServer, ServerError> {
         info!("Creating TcpServer on {}...", addr);
         Ok(
             TcpServer {
@@ -23,8 +23,11 @@ impl TcpServer {
         loop {
             let (socket, _addr) = self.listener.accept().await?;
             tokio::spawn(async move {
-                let mut session = Session::new(socket);
-                session.handle().await.unwrap();
+                let addr = socket.local_addr().unwrap().to_string();
+                let session = Session::new(socket);
+                if let Err(e) = session.handle().await {
+                    error!("Error when handling request from {}: {}", addr, e)
+                }
             });
         }
     }

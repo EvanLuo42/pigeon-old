@@ -16,9 +16,4 @@ impl RequestPacket {
             .map(|(decoded, _len)| decoded)
             .map_err(|e| e.into())
     }
-    
-    pub fn encode(&self) -> Result<Vec<u8>, ServerError> {
-        let config = config::standard();
-        bincode::encode_to_vec(self, config).map_err(|e| e.into())
-    }
 }

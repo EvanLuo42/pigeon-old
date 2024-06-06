@@ -17,5 +17,8 @@ pub enum ServerError {
     Magic(u16),
 
     #[error("Handler not exist: {0}")]
-    Handler(u8)
+    HandlerNotExist(u8),
+    
+    #[error("Empty request from {0}")]
+    EmptyRequest(String)
 }
