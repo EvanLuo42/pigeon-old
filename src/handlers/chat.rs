@@ -4,6 +4,7 @@ use tokio::net::TcpStream;
 use crate::error::ServerError;
 use crate::handlers::Handler;
 use crate::managers::chat::ChatManager;
+use crate::network::packet::Packet;
 
 pub struct ChatHandler {
     
@@ -17,9 +18,9 @@ impl ChatHandler {
 
 #[async_trait]
 impl Handler for ChatHandler {
-    async fn handle(&self, socket: TcpStream) -> Result<(), ServerError> {
+    async fn handle(&self, socket: TcpStream) -> Result<(Option<Packet>, TcpStream), ServerError> {
         let manager = get_manager::<ChatManager>().await?;
         manager.print();
-        Ok(())
+        Ok((None, socket))
     }
 }

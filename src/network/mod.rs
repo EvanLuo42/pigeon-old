@@ -1,3 +1,3 @@
 pub mod server;
 pub mod session;
-mod packet;
+pub mod packet;
