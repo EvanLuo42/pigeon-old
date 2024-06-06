@@ -1,9 +1,16 @@
-[workspace]
-members = ["crates/pigeon-gateway", "crates/pigeon-auth","crates/pigeon-pingora"]
-resolver = "2"
-
-[workspace.package]
+[package]
+name = "pigeon"
 version = "0.1.0"
-description = "A game server framework supporting hot-reload."
+description = "A rogue-like game server."
 authors = ["EvanLuo42"]
 edition = "2021"
+
+[dependencies]
+tokio = { version = "1.38.0", features = ["full"] }
+bincode = "2.0.0-rc.3"
+thiserror = "1.0.61"
+anyhow = "1.0.86"
+bytes = "1.6.0"
+enum_primitive = "0.1.1"
+tracing = "0.1.40"
+tracing-subscriber = "0.3.18"

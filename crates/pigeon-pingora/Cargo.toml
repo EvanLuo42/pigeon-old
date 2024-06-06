@@ -1,8 +1,0 @@
-[package]
-name = "pigeon-pingora"
-version.workspace = true
-description.workspace = true
-authors.workspace = true
-edition.workspace = true
-
-[dependencies]
