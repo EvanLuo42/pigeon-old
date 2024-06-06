@@ -1,15 +1,15 @@
 use async_trait::async_trait;
 use enum_primitive::{enum_from_primitive, FromPrimitive};
 use tokio::net::TcpStream;
+
 use crate::error::ServerError;
 use crate::handlers::chat::ChatHandler;
-use crate::network::packet::Packet;
 
 pub mod chat;
 
 #[async_trait]
 pub trait Handler: Send + Sync {
-    async fn handle(&self, socket: TcpStream) -> Result<(Option<Packet>, TcpStream), ServerError>;
+    async fn handle(&self, socket: &TcpStream) -> Result<(), ServerError>;
 }
 
 enum_from_primitive! {

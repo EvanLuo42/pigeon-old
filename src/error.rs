@@ -1,5 +1,4 @@
 use std::io;
-use bincode::error::{DecodeError, EncodeError};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -7,13 +6,13 @@ pub enum ServerError {
     #[error("IO error")]
     IoError(#[from] io::Error),
 
-    #[error("Decode error: {0}")]
-    Decode(#[from] DecodeError),
+    #[error("MsgPack decode error: {0}")]
+    MsgPackDecode(#[from] rmp_serde::decode::Error),
 
-    #[error("Encode error: {0}")]
-    Encode(#[from] EncodeError),
+    #[error("MsgPack encode error: {0}")]
+    MsgPackEncode(#[from] rmp_serde::encode::Error),
 
-    #[error("Wrong magic number: expected: 47382, actual: {0}")]
+    #[error("Wrong magic number: expected: 0x1234, actual: {0}")]
     Magic(u16),
 
     #[error("Handler not exist: {0}")]

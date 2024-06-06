@@ -1,24 +1,45 @@
-use bincode::{config, Decode, Encode};
+use serde::{Deserialize, Serialize};
 use crate::error::ServerError;
 
-#[derive(Encode, Decode)]
-pub struct Packet {
-    pub magic: u16,
-    pub length: usize,
-    pub handler: u8,
-    pub data: Vec<u8>
+pub trait Packet<'a> {
+    type Target: Deserialize<'a>;
+
+    fn decode(slice: &'a [u8]) -> Result<Self::Target, ServerError> {
+        rmp_serde::decode::from_slice(slice).map_err(|e| e.into())
+    }
+
+    fn encode(&self) -> Result<Vec<u8>, ServerError>
+        where Self: Serialize + Sized
+    {
+        rmp_serde::encode::to_vec(self).map_err(|e| e.into())
+    }
 }
 
-impl Packet {
-    pub fn decode(slice: &[u8]) -> Result<Packet, ServerError> {
-        let config = config::standard();
-        bincode::decode_from_slice(slice, config)
-            .map(|(decoded, _len)| decoded)
-            .map_err(|e| e.into())
-    }
+#[derive(Deserialize, Serialize, Debug)]
+pub struct RoutePacket {
+    pub magic: u16,
+    pub handler: u8,
+}
 
-    pub fn encode(&self) -> Result<Vec<u8>, ServerError> {
-        let config = config::standard();
-        bincode::encode_to_vec(self, config).map_err(|e| e.into())
-    }
+impl<'a> Packet<'a> for RoutePacket {
+    type Target = RoutePacket;
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct ResponsePacket {
+    pub pack_id: u16,
+    pub length: u32
+}
+
+impl<'a> Packet<'a> for ResponsePacket {
+    type Target = ResponsePacket;
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct ErrorPacket {
+    pub error: String
+}
+
+impl<'a> Packet<'a> for ErrorPacket {
+    type Target = ErrorPacket;
 }
