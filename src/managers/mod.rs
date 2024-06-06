@@ -18,11 +18,11 @@ lazy_static! {
 }
 
 pub async fn init() -> Result<(), ServerError> {
-    Ok(MANAGER_CONTAINER.register(ChatManager::init()).await?)
+    MANAGER_CONTAINER.register(ChatManager::init()).await
 }
 
 pub async fn get_manager<M: Manager + 'static>() -> Result<Arc<M>, ServerError> {
-    Ok(MANAGER_CONTAINER.get_manager::<M>().await?)
+    MANAGER_CONTAINER.get_manager::<M>().await
 }
 
 pub struct ManagerContainer {
