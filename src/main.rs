@@ -11,6 +11,7 @@ mod network;
 mod error;
 mod handlers;
 mod managers;
+mod protos;
 
 #[tokio::main]
 async fn main() -> Result<()> {

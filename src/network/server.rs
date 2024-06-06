@@ -1,8 +1,9 @@
+use std::sync::Arc;
 use tokio::net::{TcpListener};
+use tokio::sync::Mutex;
 use tracing::{error, info};
 
 use crate::error::ServerError;
-use crate::network::packet::{ErrorPacket, ResponsePacket};
 use crate::network::session::Session;
 
 pub struct TcpServer {
@@ -25,8 +26,8 @@ impl TcpServer {
             let (socket, _addr) = self.listener.accept().await?;
             tokio::spawn(async move {
                 let addr = socket.local_addr().unwrap().to_string();
-                let session = Session::new(socket);
-                if let Err(e) = session.handle().await {
+                let socket = Arc::new(Mutex::new(socket));
+                if let Err(e) = Session::new(socket.clone()).handle().await {
                     error!("Error when handling request from {}: {}", addr, e);
                 }
             });

@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package common;
+
+message Login {
+  uint32 magic = 1;
+  string username = 2;
+}
+
+message Route {
+  uint32 magic = 1;
+  uint32 handler = 2;
+  uint32 length = 3;
+}

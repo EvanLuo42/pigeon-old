@@ -7,9 +7,9 @@ use tokio::sync::RwLock;
 
 use crate::error::ServerError;
 use crate::error::ServerError::ManagerNotExist;
-use crate::managers::chat::ChatManager;
+use crate::managers::player::PlayerManager;
 
-pub mod chat;
+pub mod player;
 
 pub trait Manager: Any + Sync + Send {
     fn init() -> Self where Self: Sized;
@@ -20,7 +20,7 @@ lazy_static! {
 }
 
 pub async fn init() -> Result<(), ServerError> {
-    MANAGER_CONTAINER.register(ChatManager::init()).await
+    MANAGER_CONTAINER.register(PlayerManager::init()).await
 }
 
 pub async fn get_manager<M: Manager>() -> Result<Arc<M>, ServerError> {

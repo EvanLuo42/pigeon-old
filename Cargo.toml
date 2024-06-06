@@ -7,8 +7,7 @@ edition = "2021"
 
 [dependencies]
 tokio = { version = "1.38.0", features = ["full"] }
-rmp-serde = "1.3.0"
-serde = { version = "1.0.203", features = ["derive"] }
+prost = "0.12.6"
 thiserror = "1.0.61"
 anyhow = "1.0.86"
 bytes = "1.6.0"
@@ -18,3 +17,6 @@ tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 dotenv = "0.15.0"
 lazy_static = "1.4.0"
 async-trait = "0.1.80"
+
+[build-dependencies]
+prost-build = "0.12.6"

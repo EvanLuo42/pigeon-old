@@ -6,17 +6,17 @@ pub enum ServerError {
     #[error("IO error")]
     IoError(#[from] io::Error),
 
-    #[error("MsgPack decode error: {0}")]
-    MsgPackDecode(#[from] rmp_serde::decode::Error),
+    #[error("ProtoBuf decode error: {0}")]
+    ProtoBufDecode(#[from] prost::DecodeError),
 
-    #[error("MsgPack encode error: {0}")]
-    MsgPackEncode(#[from] rmp_serde::encode::Error),
+    #[error("ProtoBuf encode error: {0}")]
+    ProtoBufEncode(#[from] prost::EncodeError),
 
-    #[error("Wrong magic number: expected: 0x1234, actual: {0}")]
-    Magic(u16),
+    #[error("Wrong magic number: expected: {0}, actual: {1}")]
+    Magic(u32, u32),
 
     #[error("Handler not exist: {0}")]
-    HandlerNotExist(u8),
+    HandlerNotExist(u32),
     
     #[error("Empty request from {0}")]
     EmptyRequest(String),

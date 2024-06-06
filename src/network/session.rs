@@ -1,65 +1,55 @@
+use std::sync::Arc;
 use bytes::BytesMut;
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use prost::Message;
+use tokio::io::{AsyncReadExt};
 use tokio::net::TcpStream;
-use tracing::{debug, error};
+use tokio::sync::Mutex;
+use tracing::{debug};
 
 use crate::error::ServerError;
 use crate::error::ServerError::{EmptyRequest, Magic};
-use crate::handlers::HandlerFactory;
-use crate::network::packet::{ErrorPacket, Packet, ResponsePacket, RoutePacket};
+use crate::handlers::{HandlerFactory};
+use crate::protos::common::{Login, Route};
 
+#[derive(Clone)]
 pub struct Session {
-    socket: TcpStream
+    pub socket: Arc<Mutex<TcpStream>>
 }
 
 impl Session {
-    pub fn new(socket: TcpStream) -> Session {
+    pub fn new(socket: Arc<Mutex<TcpStream>>) -> Session {
         Session {
             socket
         }
     }
 
-    pub async fn handle(mut self) -> Result<(), ServerError> {
-        let addr = self.socket.local_addr().unwrap().to_string();
+    pub async fn handle(self) -> Result<(), ServerError> {
+        let socket = self.socket.clone();
+        let mut socket = socket.lock().await;
+        let addr = socket.local_addr().unwrap().to_string();
         debug!("Created session with {}", addr);
-        let mut buf = BytesMut::with_capacity(1024);
-        let len = self.socket.read_buf(&mut buf).await?;
+        // TODO: Calculate size
+        let mut buf = BytesMut::zeroed(1);
+        let len = socket.read_exact(&mut buf).await?;
         if len == 0 {
             return Err(EmptyRequest(addr))
         }
-
-        let packet = RoutePacket::decode(&buf)?;
-        if packet.magic != 1234 {
-            return Err(Magic(packet.magic))
+        let packet = Login::decode(buf)?;
+        if packet.magic != 4739283 {
+            return Err(Magic(4739283, packet.magic))
         }
-        let mut socket = self.socket;
-        let handler = HandlerFactory::from_id(packet.handler)?;
-        tokio::spawn(async move {
-            if let Err(e) = handler.handle(&socket).await {
-                error!("Error when handling request from {}: {}", addr, e);
-                let error = ErrorPacket {
-                    error: e.to_string(),
-                };
-                let encoded_error = error.encode();
-                if let Err(e) = encoded_error {
-                    error!("{}", e);
-                    return
-                }
-                let encoded_error = encoded_error.unwrap();
-                let response = ResponsePacket {
-                    pack_id: 0,
-                    length: encoded_error.len() as u32,
-                };
-                let encoded_response = response.encode();
-                if let Err(e) = encoded_response {
-                    error!("{}", e);
-                    return
-                }
-                let encoded_response = encoded_response.unwrap();
-                socket.write_all(&encoded_response).await.unwrap_or_else(|e| error!("{}", e));
-                socket.write_all(&encoded_error).await.unwrap_or_else(|e| error!("{}", e));
+
+        let player_handler = HandlerFactory::from_id(0)?;
+        player_handler.handle(self.clone()).await?;
+        loop {
+            // TODO: Calculate size
+            let buf = BytesMut::zeroed(1);
+            if len == 0 {
+                return Err(EmptyRequest(addr))
             }
-        });
-        Ok(())
+            let packet = Route::decode(buf)?;
+            let handler = HandlerFactory::from_id(packet.handler)?;
+            handler.handle(self.clone()).await?;
+        }
     }
 }
