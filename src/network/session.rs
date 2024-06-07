@@ -35,8 +35,6 @@ impl Session {
 
         let manager = get_manager::<PlayerManager>().await?;
         manager.login(self.username.clone(), self.clone()).await?;
-        let mut interval = interval(Duration::from_secs(5));
-        interval.tick().await;
         loop {
             let buf = read_by_len(socket.clone()).await?;
             let packet = Route::decode(buf)?;
