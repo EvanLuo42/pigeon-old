@@ -1,9 +1,7 @@
 use std::sync::Arc;
-use std::time::Duration;
 use prost::Message;
 use tokio::net::TcpStream;
 use tokio::sync::RwLock;
-use tokio::time::interval;
 use tracing::{debug};
 use crate::error::ServerError;
 
@@ -39,7 +37,7 @@ impl Session {
             let buf = read_by_len(socket.clone()).await?;
             let packet = Route::decode(buf)?;
             if packet.magic != 2948374 {
-                return Err(Magic(2948374, packet.magic))?
+                return Err(Magic(2948374, packet.magic))
             }
             let handler = HandlerFactory::from_id(packet.handler)?;
             handler.handle(self.clone()).await?;

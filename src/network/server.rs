@@ -43,7 +43,7 @@ impl TcpServer {
         let buf = read_by_len(socket.clone()).await?;
         let player_packet = Login::decode(buf)?;
         if player_packet.magic != 4739283 {
-            return Err(Magic(4739283, player_packet.magic))?
+            return Err(Magic(4739283, player_packet.magic))
         }
         if let Err(e) = Session::new(socket.clone(), player_packet.username.clone()).handle().await {
             get_manager::<PlayerManager>().await?.logout(player_packet.username).await?;
