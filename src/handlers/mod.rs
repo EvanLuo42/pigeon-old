@@ -2,10 +2,10 @@ use async_trait::async_trait;
 use enum_primitive::{enum_from_primitive, FromPrimitive};
 
 use crate::error::ServerError;
-use crate::handlers::player::PlayerHandler;
+use crate::handlers::movement::MovementHandler;
 use crate::network::session::Session;
 
-pub mod player;
+pub mod movement;
 
 #[async_trait]
 pub trait Handler: Send + Sync {
@@ -14,7 +14,7 @@ pub trait Handler: Send + Sync {
 
 enum_from_primitive! {
     pub enum Handlers {
-        Player = 0
+        Movement = 1,
     }
 }
 
@@ -23,7 +23,7 @@ pub struct HandlerFactory;
 impl HandlerFactory {
     pub fn from_id(id: u32) -> Result<Box<dyn Handler>, ServerError> {
         match Handlers::from_u8(id as u8).ok_or(ServerError::HandlerNotExist(id))? {
-            Handlers::Player => Ok(Box::new(PlayerHandler::new()))
+            Handlers::Movement => Ok(Box::new(MovementHandler::new()))
         }
     }
 }

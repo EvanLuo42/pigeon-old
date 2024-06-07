@@ -1,55 +1,56 @@
 use std::sync::Arc;
-use bytes::BytesMut;
+use std::time::Duration;
 use prost::Message;
-use tokio::io::{AsyncReadExt};
 use tokio::net::TcpStream;
-use tokio::sync::Mutex;
+use tokio::sync::RwLock;
+use tokio::time::interval;
 use tracing::{debug};
 
 use crate::error::ServerError;
-use crate::error::ServerError::{EmptyRequest, Magic};
+use crate::error::ServerError::{Disconnected, Magic};
 use crate::handlers::{HandlerFactory};
-use crate::protos::common::{Login, Route};
+use crate::managers::get_manager;
+use crate::managers::player::PlayerManager;
+use crate::protos::common::{Route};
+use crate::protos::read_by_len;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Session {
-    pub socket: Arc<Mutex<TcpStream>>
+    pub socket: Arc<RwLock<TcpStream>>,
+    pub username: String
 }
 
 impl Session {
-    pub fn new(socket: Arc<Mutex<TcpStream>>) -> Session {
+    pub fn new(socket: Arc<RwLock<TcpStream>>, username: String) -> Session {
         Session {
-            socket
+            socket,
+            username
         }
     }
 
     pub async fn handle(self) -> Result<(), ServerError> {
         let socket = self.socket.clone();
-        let mut socket = socket.lock().await;
-        let addr = socket.local_addr().unwrap().to_string();
+        let addr = socket.read().await.local_addr().unwrap().to_string();
         debug!("Created session with {}", addr);
-        // TODO: Calculate size
-        let mut buf = BytesMut::zeroed(1);
-        let len = socket.read_exact(&mut buf).await?;
-        if len == 0 {
-            return Err(EmptyRequest(addr))
-        }
-        let packet = Login::decode(buf)?;
-        if packet.magic != 4739283 {
-            return Err(Magic(4739283, packet.magic))
-        }
 
-        let player_handler = HandlerFactory::from_id(0)?;
-        player_handler.handle(self.clone()).await?;
+        let manager = get_manager::<PlayerManager>().await?;
+        manager.login(self.username.clone(), self.clone()).await?;
+        let mut interval = interval(Duration::from_secs(5));
+        interval.tick().await;
         loop {
-            // TODO: Calculate size
-            let buf = BytesMut::zeroed(1);
-            if len == 0 {
-                return Err(EmptyRequest(addr))
+            tokio::select! {
+                _ = interval.tick() => {
+                    break Err(Disconnected(socket.read().await.local_addr()?.to_string()))
+                },
+                buf = read_by_len(socket.clone()) => {
+                    let packet = Route::decode(buf?)?;
+                    if packet.magic != 2948374 {
+                        return Err(Magic(2948374, packet.magic))
+                    }
+                    let handler = HandlerFactory::from_id(packet.handler)?;
+                    handler.handle(self.clone()).await?;
+                }
             }
-            let packet = Route::decode(buf)?;
-            let handler = HandlerFactory::from_id(packet.handler)?;
-            handler.handle(self.clone()).await?;
         }
     }
 }

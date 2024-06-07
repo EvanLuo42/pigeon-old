@@ -17,10 +17,13 @@ pub enum ServerError {
 
     #[error("Handler not exist: {0}")]
     HandlerNotExist(u32),
-    
-    #[error("Empty request from {0}")]
-    EmptyRequest(String),
 
     #[error("Manager {0} not exist")]
     ManagerNotExist(String),
+
+    #[error("Player from {0} disconnected")]
+    Disconnected(String),
+    
+    #[error("Player {0} not exist")]
+    PlayerNotExist(String)
 }
