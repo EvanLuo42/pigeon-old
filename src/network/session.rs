@@ -5,9 +5,9 @@ use tokio::net::TcpStream;
 use tokio::sync::RwLock;
 use tokio::time::interval;
 use tracing::{debug};
-
 use crate::error::ServerError;
-use crate::error::ServerError::{Disconnected, Magic};
+
+use crate::error::ServerError::Magic;
 use crate::handlers::{HandlerFactory};
 use crate::managers::get_manager;
 use crate::managers::player::PlayerManager;
@@ -38,19 +38,13 @@ impl Session {
         let mut interval = interval(Duration::from_secs(5));
         interval.tick().await;
         loop {
-            tokio::select! {
-                _ = interval.tick() => {
-                    break Err(Disconnected(socket.read().await.local_addr()?.to_string()))
-                },
-                buf = read_by_len(socket.clone()) => {
-                    let packet = Route::decode(buf?)?;
-                    if packet.magic != 2948374 {
-                        return Err(Magic(2948374, packet.magic))
-                    }
-                    let handler = HandlerFactory::from_id(packet.handler)?;
-                    handler.handle(self.clone()).await?;
-                }
+            let buf = read_by_len(socket.clone()).await?;
+            let packet = Route::decode(buf)?;
+            if packet.magic != 2948374 {
+                return Err(Magic(2948374, packet.magic))?
             }
+            let handler = HandlerFactory::from_id(packet.handler)?;
+            handler.handle(self.clone()).await?;
         }
     }
 }

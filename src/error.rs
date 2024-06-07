@@ -3,7 +3,7 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum ServerError {
-    #[error("IO error")]
+    #[error("IO error: {0}")]
     IoError(#[from] io::Error),
 
     #[error("ProtoBuf decode error: {0}")]
@@ -20,9 +20,6 @@ pub enum ServerError {
 
     #[error("Manager {0} not exist")]
     ManagerNotExist(String),
-
-    #[error("Player from {0} disconnected")]
-    Disconnected(String),
     
     #[error("Player {0} not exist")]
     PlayerNotExist(String)

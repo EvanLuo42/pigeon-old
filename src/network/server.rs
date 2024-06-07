@@ -1,6 +1,6 @@
 use std::sync::Arc;
 use prost::Message;
-use tokio::net::{TcpListener};
+use tokio::net::{TcpListener, TcpStream};
 use tokio::sync::RwLock;
 use tracing::{error, info};
 
@@ -31,25 +31,24 @@ impl TcpServer {
         loop {
             let (socket, _addr) = self.listener.accept().await?;
             tokio::spawn(async move {
-                let addr = socket.local_addr().unwrap().to_string();
-                let socket = Arc::new(RwLock::new(socket));
-                let buf = read_by_len(socket.clone()).await;
-                if let Ok(buf) = buf {
-                    let player_packet = Login::decode(buf);
-                    if let Ok(player_packet) = player_packet {
-                        if player_packet.magic != 4739283 {
-                            return Err(Magic(4739283, player_packet.magic))
-                        }
-                        if let Err(e) = Session::new(socket.clone(), player_packet.username.clone()).handle().await {
-                            if let Err(e) = get_manager::<PlayerManager>().await?.logout(player_packet.username).await {
-                                error!("Error when handling request from {}: {}", addr, e);
-                            }
-                            error!("Error when handling request from {}: {}", addr, e);
-                        }
-                    }
+                if let Err(e) = Self::on_request(socket).await {
+                    error!("Error when handling request: {}", e);
                 }
-                Ok(())
             });
         }
+    }
+    
+    async fn on_request(socket: TcpStream) -> Result<(), ServerError> {
+        let socket = Arc::new(RwLock::new(socket));
+        let buf = read_by_len(socket.clone()).await?;
+        let player_packet = Login::decode(buf)?;
+        if player_packet.magic != 4739283 {
+            return Err(Magic(4739283, player_packet.magic))?
+        }
+        if let Err(e) = Session::new(socket.clone(), player_packet.username.clone()).handle().await {
+            get_manager::<PlayerManager>().await?.logout(player_packet.username).await?;
+            return Err(e)
+        }
+        Ok(())
     }
 }
