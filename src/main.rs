@@ -1,5 +1,3 @@
-#[macro_use] extern crate enum_primitive;
-
 use std::env;
 
 use anyhow::Result;
@@ -10,6 +8,7 @@ use crate::network::server::{ListenSession, TcpServer};
 mod error;
 mod protos;
 mod network;
+mod ecs;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -19,7 +18,7 @@ async fn main() -> Result<()> {
         .init();
     let server = TcpServer::new().start().await?;
     server.call(ListenSession {
-        host: "0.0.0.0:8080".into()
+        host: env::var("ADDR").unwrap_or("127.0.0.1:8080".into())
     }).await??;
     Ok(())
 }

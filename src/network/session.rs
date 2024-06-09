@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use tokio::net::TcpStream;
 use xactor::{Actor, Addr, Context, Handler, message};
 use crate::network::server::TcpServer;
+use crate::protos::read_by_len;
 
 pub struct Session {
     tcp_stream: TcpStream
@@ -26,6 +27,9 @@ pub struct ListenPacket {
 #[async_trait]
 impl Handler<ListenPacket> for Session {
     async fn handle(&mut self, ctx: &mut Context<Self>, msg: ListenPacket) {
-        todo!()
+        loop {
+            let buf = read_by_len(&mut self.tcp_stream).await;
+
+        }
     }
 }

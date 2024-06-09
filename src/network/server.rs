@@ -2,17 +2,20 @@ use async_trait::async_trait;
 use tokio::net::TcpListener;
 use tracing::error;
 use xactor::{Actor, Addr, Context, Handler, message};
+use crate::ecs::game::Game;
 use crate::network::session::{ListenPacket, Session};
 use crate::error::ServerError;
 
 pub struct TcpServer {
-    sessions: Vec<Addr<Session>>
+    sessions: Vec<Addr<Session>>,
+    game: Game,
 }
 
 impl TcpServer {
     pub fn new() -> TcpServer {
         TcpServer {
-            sessions: vec![]
+            sessions: vec![],
+            game: Game::new()
         }
     }
 }

@@ -11,14 +11,13 @@ prost = "0.12.6"
 thiserror = "1.0.61"
 anyhow = "1.0.86"
 bytes = "1.6.0"
-enum_primitive = "0.1.1"
 tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 dotenv = "0.15.0"
 lazy_static = "1.4.0"
 async-trait = "0.1.80"
 xactor = { version = "0.7.11", features = ["runtime-tokio"], default-features = false }
-specs = "0.20.0"
+bevy_ecs = "0.14.0-rc.2"
 
 [build-dependencies]
 prost-build = "0.12.6"
