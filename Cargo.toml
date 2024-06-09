@@ -17,6 +17,8 @@ tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 dotenv = "0.15.0"
 lazy_static = "1.4.0"
 async-trait = "0.1.80"
+xactor = { version = "0.7.11", features = ["runtime-tokio"], default-features = false }
+specs = "0.20.0"
 
 [build-dependencies]
 prost-build = "0.12.6"

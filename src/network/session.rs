@@ -1,46 +1,31 @@
-use std::sync::Arc;
-use prost::Message;
+use async_trait::async_trait;
 use tokio::net::TcpStream;
-use tokio::sync::RwLock;
-use tracing::{debug};
-use crate::error::ServerError;
+use xactor::{Actor, Addr, Context, Handler, message};
+use crate::network::server::TcpServer;
 
-use crate::error::ServerError::Magic;
-use crate::handlers::{HandlerFactory};
-use crate::managers::get_manager;
-use crate::managers::player::PlayerManager;
-use crate::protos::common::{Route};
-use crate::protos::read_by_len;
-
-#[derive(Clone, Debug)]
 pub struct Session {
-    pub socket: Arc<RwLock<TcpStream>>,
-    pub username: String
+    tcp_stream: TcpStream
 }
 
 impl Session {
-    pub fn new(socket: Arc<RwLock<TcpStream>>, username: String) -> Session {
+    pub fn new(tcp_stream: TcpStream) -> Session {
         Session {
-            socket,
-            username
+            tcp_stream
         }
     }
+}
 
-    pub async fn handle(self) -> Result<(), ServerError> {
-        let socket = self.socket.clone();
-        let addr = socket.read().await.local_addr().unwrap().to_string();
-        debug!("Created session with {}", addr);
+impl Actor for Session {
+}
 
-        let manager = get_manager::<PlayerManager>().await?;
-        manager.login(self.username.clone(), self.clone()).await?;
-        loop {
-            let buf = read_by_len(socket.clone()).await?;
-            let packet = Route::decode(buf)?;
-            if packet.magic != 2948374 {
-                return Err(Magic(2948374, packet.magic))
-            }
-            let handler = HandlerFactory::from_id(packet.handler)?;
-            handler.handle(self.clone()).await?;
-        }
+#[message]
+pub struct ListenPacket {
+    pub tcp_server: Addr<TcpServer>
+}
+
+#[async_trait]
+impl Handler<ListenPacket> for Session {
+    async fn handle(&mut self, ctx: &mut Context<Self>, msg: ListenPacket) {
+        todo!()
     }
 }

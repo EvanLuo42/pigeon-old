@@ -4,14 +4,12 @@ use std::env;
 
 use anyhow::Result;
 use tracing_subscriber::EnvFilter;
+use xactor::Actor;
+use crate::network::server::{ListenSession, TcpServer};
 
-use crate::network::server::TcpServer;
-
-mod network;
 mod error;
-mod handlers;
-mod managers;
 mod protos;
+mod network;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -19,9 +17,9 @@ async fn main() -> Result<()> {
     tracing_subscriber::fmt()
         .with_env_filter(EnvFilter::from_default_env())
         .init();
-    managers::init().await?;
-    let server = TcpServer::new(
-        env::var("ADDR").unwrap_or(String::from("127.0.0.1:8080"))).await?;
-    server.listen().await?;
+    let server = TcpServer::new().start().await?;
+    server.call(ListenSession {
+        host: "0.0.0.0:8080".into()
+    }).await??;
     Ok(())
 }

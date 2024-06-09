@@ -1,53 +1,47 @@
-use std::sync::Arc;
-use prost::Message;
-use tokio::net::{TcpListener, TcpStream};
-use tokio::sync::RwLock;
-use tracing::{error, info};
-
+use async_trait::async_trait;
+use tokio::net::TcpListener;
+use tracing::error;
+use xactor::{Actor, Addr, Context, Handler, message};
+use crate::network::session::{ListenPacket, Session};
 use crate::error::ServerError;
-use crate::error::ServerError::Magic;
-use crate::managers::get_manager;
-use crate::managers::player::PlayerManager;
-use crate::network::session::Session;
-use crate::protos::common::Login;
-use crate::protos::read_by_len;
 
 pub struct TcpServer {
-    listener: TcpListener
+    sessions: Vec<Addr<Session>>
 }
 
 impl TcpServer {
-    pub async fn new(addr: String) -> Result<TcpServer, ServerError> {
-        info!("Creating TcpServer on {}...", addr);
-        Ok(
-            TcpServer {
-                listener: TcpListener::bind(addr).await?,
-            }
-        )
+    pub fn new() -> TcpServer {
+        TcpServer {
+            sessions: vec![]
+        }
     }
+}
 
-    pub async fn listen(&self) -> Result<(), ServerError> {
-        info!("Listening incoming requests...");
-        loop {
-            let (socket, _addr) = self.listener.accept().await?;
+impl Actor for TcpServer {
+}
+
+#[message(result = "Result<(), ServerError>")]
+pub struct ListenSession {
+    pub host: String
+}
+
+#[async_trait]
+impl Handler<ListenSession> for TcpServer {
+    async fn handle(&mut self, ctx: &mut Context<Self>, msg: ListenSession) -> Result<(), ServerError> {
+        let listener = TcpListener::bind(msg.host).await?;
+        while let Ok((stream, addr)) = listener.accept().await {
+            let session = Session::new(stream).start().await?;
+            let _session = session.clone();
+            let tcp_server = ctx.address();
             tokio::spawn(async move {
-                if let Err(e) = Self::on_request(socket).await {
-                    error!("Error when handling request: {}", e);
+                let message = ListenPacket {
+                    tcp_server
+                };
+                if let Err(e) = _session.call(message).await {
+                    error!("Error when handling request from {}: {}", addr.to_string(), e);
                 }
             });
-        }
-    }
-    
-    async fn on_request(socket: TcpStream) -> Result<(), ServerError> {
-        let socket = Arc::new(RwLock::new(socket));
-        let buf = read_by_len(socket.clone()).await?;
-        let player_packet = Login::decode(buf)?;
-        if player_packet.magic != 4739283 {
-            return Err(Magic(4739283, player_packet.magic))
-        }
-        if let Err(e) = Session::new(socket.clone(), player_packet.username.clone()).handle().await {
-            get_manager::<PlayerManager>().await?.logout(player_packet.username).await?;
-            return Err(e)
+            self.sessions.push(session);
         }
         Ok(())
     }

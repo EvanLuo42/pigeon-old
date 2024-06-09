@@ -22,5 +22,8 @@ pub enum ServerError {
     ManagerNotExist(String),
     
     #[error("Player {0} not exist")]
-    PlayerNotExist(String)
+    PlayerNotExist(String),
+    
+    #[error("Other error: {0}")]
+    Other(#[from] anyhow::Error)
 }
