@@ -16,7 +16,7 @@ async fn main() -> Result<()> {
     tracing_subscriber::fmt()
         .with_env_filter(EnvFilter::from_default_env())
         .init();
-    let server = TcpServer::new().start().await?;
+    let server = TcpServer::new().await?.start().await?;
     server.call(ListenSession {
         host: env::var("ADDR").unwrap_or("127.0.0.1:8080".into())
     }).await??;

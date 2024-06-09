@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use async_trait::async_trait;
 use tokio::net::TcpListener;
 use tracing::error;
@@ -7,16 +8,18 @@ use crate::network::session::{ListenPacket, Session};
 use crate::error::ServerError;
 
 pub struct TcpServer {
-    sessions: Vec<Addr<Session>>,
-    game: Game,
+    sessions: HashMap<String, Addr<Session>>,
+    game: Addr<Game>,
 }
 
 impl TcpServer {
-    pub fn new() -> TcpServer {
-        TcpServer {
-            sessions: vec![],
-            game: Game::new()
-        }
+    pub async fn new() -> Result<TcpServer, ServerError> {
+       Ok(
+           TcpServer {
+               sessions: HashMap::new(),
+               game: Game::new().start().await?
+           }
+       )
     }
 }
 
@@ -36,16 +39,31 @@ impl Handler<ListenSession> for TcpServer {
             let session = Session::new(stream).start().await?;
             let _session = session.clone();
             let tcp_server = ctx.address();
+            let game = self.game.clone();
             tokio::spawn(async move {
                 let message = ListenPacket {
-                    tcp_server
+                    tcp_server: tcp_server.clone(),
+                    game,
                 };
                 if let Err(e) = _session.call(message).await {
+                    tcp_server.call(TerminateSession { ip: addr.to_string() }).await.unwrap();
                     error!("Error when handling request from {}: {}", addr.to_string(), e);
                 }
             });
-            self.sessions.push(session);
+            self.sessions.insert(addr.to_string(), session);
         }
         Ok(())
+    }
+}
+
+#[message]
+pub struct TerminateSession {
+    ip: String
+}
+
+#[async_trait]
+impl Handler<TerminateSession> for TcpServer {
+    async fn handle(&mut self, _ctx: &mut Context<Self>, msg: TerminateSession) {
+        self.sessions.remove(&msg.ip);
     }
 }
